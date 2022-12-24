@@ -7,7 +7,7 @@ import (
 	"github.com/streadway/amqp"
 )
 
-func consumer() {
+func main() {
 	fmt.Println("SMS Consumer - Connecting to the SMS channel")
 	log.Println("SMS Consumer - Connecting to the SMS channel")
 
