@@ -10,7 +10,7 @@ services:
       - 5672:5672 # for sender and consumer connections
       - 15672:15672 # for serve RabbitMQ GUI
     volumes:
-      - ./data:/var/lib/rabbitmq/
+      - ./data:/var/lib/rabbitmq
       - ./log:/var/log/rabbitmq
     restart: always
     networks:

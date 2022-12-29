@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/streadway/amqp"
 )
@@ -12,7 +13,7 @@ func main() {
 	log.Println("SMS Consumer - Connecting to the SMS channel")
 
 	// Define RabbitMQ server URL.
-	amqpServerURL := "amqp://guest:guest@localhost:5672/"
+	amqpServerURL := os.Getenv("AMQP_SERVER_URL")
 
 	// Create a new RabbitMQ connection.
 	conn, err := amqp.Dial(amqpServerURL)
