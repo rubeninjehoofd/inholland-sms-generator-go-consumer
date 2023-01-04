@@ -14,6 +14,7 @@ func main() {
 
 	// Define RabbitMQ server URL.
 	amqpServerURL := os.Getenv("AMQP_SERVER_URL")
+	// amqpServerURL := "amqp://guest:guest@rabbitmq:5672/"
 
 	// Create a new RabbitMQ connection.
 	conn, err := amqp.Dial(amqpServerURL)
