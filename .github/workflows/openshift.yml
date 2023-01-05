@@ -36,7 +36,7 @@ env:
   OPENSHIFT_NAMESPACE: crt-650580-dev
 
   # 🖊️ EDIT to set a name for your OpenShift app, or a default one will be generated below.
-  APP_NAME: sms-consumer
+  APP_NAME:
 
   # 🖊️ EDIT with the port your application should be accessible on.
   # If the container image exposes *exactly one* port, this can be left blank.
