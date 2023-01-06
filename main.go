@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"sms-consumer/app/helpers"
@@ -65,9 +67,24 @@ func main() {
 
 	go func() {
 		for sms := range messages {
-			log.Println("Received SMS:", sms.Body)
+			msg, err := deserialize(sms.Body)
+			if err != nil {
+				panic(err)
+			}
+			log.Println("Received SMS:", msg.Message)
 		}
 	}()
 
 	<-forever
+}
+
+type Message map[string]interface{}
+
+func deserialize(b []byte) (helpers.GroupMessage, error) {
+	// speel met if en reflect operator om te bepalen of het een group of location message is
+	var msg helpers.GroupMessage
+	buf := bytes.NewBuffer(b)
+	decoder := json.NewDecoder(buf)
+	err := decoder.Decode(&msg)
+	return msg, err
 }
