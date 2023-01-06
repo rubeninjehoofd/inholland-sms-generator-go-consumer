@@ -3,7 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"sms-consumer/src/helpers"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/streadway/amqp"
 )
 
@@ -22,6 +25,16 @@ func main() {
 	}
 
 	defer conn.Close()
+
+	classMsg := helpers.GroupMessage{
+		MessageId:   uuid.New(),
+		ClassId:     uuid.New(),
+		ScheduledAt: time.Now(),
+		Message:     "hello world",
+		PhoneNumber: "test",
+	}
+
+	fmt.Println(classMsg.Message)
 
 	// Opening a channel to our RabbitMQ instance over
 	// the connection we have already established.
