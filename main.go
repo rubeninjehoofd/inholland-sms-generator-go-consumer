@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 	"sms-consumer/app/helpers"
 	"time"
 
@@ -15,18 +14,6 @@ func main() {
 	fmt.Println("SMS Consumer - Connecting to the SMS channel")
 	log.Println("SMS Consumer - Connecting to the SMS channel")
 
-	// Define RabbitMQ server URL.
-	amqpServerURL := os.Getenv("AMQP_SERVER_URL_TEST")
-	// amqpServerURL := "amqp://guest:guest@rabbitmq:5672/"
-
-	// Create a new RabbitMQ connection.
-	conn, err := amqp.Dial(amqpServerURL)
-	if err != nil {
-		panic(err)
-	}
-
-	defer conn.Close()
-
 	classMsg := helpers.GroupMessage{
 		MessageId:   uuid.New(),
 		ClassId:     uuid.New(),
@@ -36,6 +23,18 @@ func main() {
 	}
 
 	fmt.Println(classMsg.Message)
+
+	// Define RabbitMQ server URL.
+	// amqpServerURL := os.Getenv("AMQP_SERVER_URL_TEST")
+	amqpServerURL := "amqp://guest:guest@rabbitmq:5672/"
+
+	// Create a new RabbitMQ connection.
+	conn, err := amqp.Dial(amqpServerURL)
+	if err != nil {
+		panic(err)
+	}
+
+	defer conn.Close()
 
 	// Opening a channel to our RabbitMQ instance over
 	// the connection we have already established.
