@@ -4,11 +4,11 @@ FROM golang:1.19-alpine AS builder
 WORKDIR /build
 
 # Copy and download dependency using go mod.
-COPY go.mod go.sum ./
+COPY . ./
 RUN go mod download
 
 # Copy the code into the container.
-COPY main.go .
+# COPY main.go .
 
 # Set necessary environment variables needed 
 # for our image and build the consumer.
