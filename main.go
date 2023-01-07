@@ -5,27 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 	"sms-consumer/app/helpers"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/streadway/amqp"
 )
 
 func main() {
 	fmt.Println("SMS Consumer - Connecting to the SMS channel")
 	log.Println("SMS Consumer - Connecting to the SMS channel")
-
-	classMsg := helpers.GroupMessage{
-		MessageId:       uuid.New(),
-		ClassId:         uuid.New(),
-		ScheduledAt:     time.Now(),
-		Message:         "hello world",
-		FromPhoneNumber: "112",
-		ToPhoneNumber:   "0612345678",
-	}
-
-	fmt.Println(classMsg.Message)
 
 	// Define RabbitMQ server URL.
 	// amqpServerURL := os.Getenv("AMQP_SERVER_URL_TEST")
@@ -68,11 +56,20 @@ func main() {
 
 	go func() {
 		for sms := range messages {
-			msg, err := deserialize(sms.Body)
+			deserializedMsg, err := deserializeToJson(sms.Body)
 			if err != nil {
 				panic(err)
 			}
-			log.Println("Received SMS:", msg.Message)
+			gMsg, lMsg := determineMessageType(deserializedMsg)
+
+			if gMsg.ClassId != "" {
+				// sender.SendGroupMessage(gMsg)
+				log.Println("Received class message:", gMsg.Message)
+
+			} else {
+				// sender.SendLocationMessage(lMsg)
+				log.Println("Received location message:", lMsg.Message)
+			}
 		}
 	}()
 
@@ -81,11 +78,52 @@ func main() {
 
 type Message map[string]interface{}
 
-func deserialize(b []byte) (helpers.GroupMessage, error) {
-	// speel met if en reflect operator om te bepalen of het een group of location message is
-	var msg helpers.GroupMessage
+// deserialize the byte array to json message object
+func deserializeToJson(b []byte) (Message, error) {
+	var msg Message
 	buf := bytes.NewBuffer(b)
 	decoder := json.NewDecoder(buf)
 	err := decoder.Decode(&msg)
 	return msg, err
+}
+
+// Determines the message type
+func determineMessageType(msg Message) (helpers.GroupMessageJSON, helpers.LocationMessageJSON) {
+	var gMsg helpers.GroupMessageJSON
+	var lMsg helpers.LocationMessageJSON
+	if val, ok := msg["ClassId"]; ok {
+		fmt.Println(reflect.TypeOf(val))
+		gMsg = deserializeToGroupMessage(msg)
+	} else {
+		lMsg = deserializeToLocationMessage(msg)
+	}
+	return gMsg, lMsg
+}
+
+// Makes a group message object with only string field from the json message
+// (uuid, time, etc. types are not in the json object)
+func deserializeToGroupMessage(msg Message) helpers.GroupMessageJSON {
+	gMsg := helpers.GroupMessageJSON{
+		MessageId:       msg["MessageId"].(string),
+		ClassId:         msg["ClassId"].(string),
+		ScheduledAt:     msg["ScheduledAt"].(string),
+		Message:         msg["Message"].(string),
+		FromPhoneNumber: msg["FromPhoneNumber"].(string),
+		ToPhoneNumber:   msg["ToPhoneNumber"].(string),
+	}
+	return gMsg
+}
+
+// Makes a location message object with only string field from the json message
+// (uuid, time, etc. types are not in the json object)
+func deserializeToLocationMessage(msg Message) helpers.LocationMessageJSON {
+	lMsg := helpers.LocationMessageJSON{
+		MessageId:       msg["MessageId"].(string),
+		LocationId:      msg["LocationId"].(string),
+		ScheduledAt:     msg["ScheduledAt"].(string),
+		Message:         msg["Message"].(string),
+		FromPhoneNumber: msg["FromPhoneNumber"].(string),
+		ToPhoneNumber:   msg["ToPhoneNumber"].(string),
+	}
+	return lMsg
 }
