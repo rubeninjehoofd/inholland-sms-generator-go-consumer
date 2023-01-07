@@ -17,11 +17,12 @@ func main() {
 	log.Println("SMS Consumer - Connecting to the SMS channel")
 
 	classMsg := helpers.GroupMessage{
-		MessageId:   uuid.New(),
-		ClassId:     uuid.New(),
-		ScheduledAt: time.Now(),
-		Message:     "hello world",
-		PhoneNumber: "test",
+		MessageId:       uuid.New(),
+		ClassId:         uuid.New(),
+		ScheduledAt:     time.Now(),
+		Message:         "hello world",
+		FromPhoneNumber: "112",
+		ToPhoneNumber:   "0612345678",
 	}
 
 	fmt.Println(classMsg.Message)
