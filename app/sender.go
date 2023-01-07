@@ -1,8 +1,8 @@
-package main
+package app
 
 import (
 	"fmt"
-	"sms-consumer/src/helpers"
+	"sms-consumer/app/helpers"
 	"time"
 
 	"github.com/google/uuid"
