@@ -7,9 +7,10 @@ import (
 )
 
 type LocationMessage struct {
-	MessageId   uuid.UUID
-	LocationId  uuid.UUID
-	ScheduledAt time.Time
-	Message     string
-	PhoneNumber string
+	MessageId       uuid.UUID
+	LocationId      uuid.UUID
+	ScheduledAt     time.Time
+	Message         string
+	FromPhoneNumber string
+	ToPhoneNumber   string
 }
