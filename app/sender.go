@@ -87,9 +87,9 @@ func init() {
 func sender() {
 
 	var GroupMessage helpers.GroupMessage
-	// GroupMessage.MessageId = uuid.UUID{}
-	// GroupMessage.ClassId = uuid.UUID{}
-	//GroupMessage.ScheduledAt = time.Now()
+	GroupMessage.MessageId = uuid.UUID{}
+	GroupMessage.ClassId = uuid.UUID{}
+	GroupMessage.ScheduledAt = time.Now()
 	GroupMessage.ScheduledAt = time.Date(2023, 1, 6, 15, 18, 0, 0, time.Local)
 	GroupMessage.Message = "test"
 	GroupMessage.FromPhoneNumber = "+12183199239"

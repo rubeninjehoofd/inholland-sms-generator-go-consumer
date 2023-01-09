@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"reflect"
 	"sms-consumer/app/helpers"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/streadway/amqp"
 )
 
@@ -62,7 +63,7 @@ func main() {
 			}
 			gMsg, lMsg := determineMessageType(deserializedMsg)
 
-			if gMsg.ClassId != "" {
+			if gMsg.ClassId != uuid.Nil {
 				// sender.SendGroupMessage(gMsg)
 				log.Println("Received class message:", gMsg.Message)
 
@@ -78,7 +79,7 @@ func main() {
 
 type Message map[string]interface{}
 
-// deserialize the byte array to json message object
+// Deserialize the byte array to json message object
 func deserializeToJson(b []byte) (Message, error) {
 	var msg Message
 	buf := bytes.NewBuffer(b)
@@ -88,11 +89,10 @@ func deserializeToJson(b []byte) (Message, error) {
 }
 
 // Determines the message type
-func determineMessageType(msg Message) (helpers.GroupMessageJSON, helpers.LocationMessageJSON) {
-	var gMsg helpers.GroupMessageJSON
-	var lMsg helpers.LocationMessageJSON
-	if val, ok := msg["ClassId"]; ok {
-		fmt.Println(reflect.TypeOf(val))
+func determineMessageType(msg Message) (helpers.GroupMessage, helpers.LocationMessage) {
+	var gMsg helpers.GroupMessage
+	var lMsg helpers.LocationMessage
+	if _, ok := msg["ClassId"]; ok {
 		gMsg = deserializeToGroupMessage(msg)
 	} else {
 		lMsg = deserializeToLocationMessage(msg)
@@ -102,11 +102,18 @@ func determineMessageType(msg Message) (helpers.GroupMessageJSON, helpers.Locati
 
 // Makes a group message object with only string field from the json message
 // (uuid, time, etc. types are not in the json object)
-func deserializeToGroupMessage(msg Message) helpers.GroupMessageJSON {
-	gMsg := helpers.GroupMessageJSON{
-		MessageId:       msg["MessageId"].(string),
-		ClassId:         msg["ClassId"].(string),
-		ScheduledAt:     msg["ScheduledAt"].(string),
+func deserializeToGroupMessage(msg Message) helpers.GroupMessage {
+	// Parse can't happen inline, because the time.Parse function can return 2 values
+	scheduledAt, err := time.Parse(time.RFC3339, msg["ScheduledAt"].(string))
+	if err != nil {
+		panic(err)
+	}
+
+	// Make group message
+	gMsg := helpers.GroupMessage{
+		MessageId:       uuid.MustParse(msg["MessageId"].(string)),
+		ClassId:         uuid.MustParse(msg["ClassId"].(string)),
+		ScheduledAt:     scheduledAt,
 		Message:         msg["Message"].(string),
 		FromPhoneNumber: msg["FromPhoneNumber"].(string),
 		ToPhoneNumber:   msg["ToPhoneNumber"].(string),
@@ -116,11 +123,18 @@ func deserializeToGroupMessage(msg Message) helpers.GroupMessageJSON {
 
 // Makes a location message object with only string field from the json message
 // (uuid, time, etc. types are not in the json object)
-func deserializeToLocationMessage(msg Message) helpers.LocationMessageJSON {
-	lMsg := helpers.LocationMessageJSON{
-		MessageId:       msg["MessageId"].(string),
-		LocationId:      msg["LocationId"].(string),
-		ScheduledAt:     msg["ScheduledAt"].(string),
+func deserializeToLocationMessage(msg Message) helpers.LocationMessage {
+	// Parse can't happen inline, because the time.Parse function can return 2 values
+	scheduledAt, err := time.Parse(time.RFC3339, msg["ScheduledAt"].(string))
+	if err != nil {
+		panic(err)
+	}
+
+	// Make location message
+	lMsg := helpers.LocationMessage{
+		MessageId:       uuid.MustParse(msg["MessageId"].(string)),
+		LocationId:      uuid.MustParse(msg["LocationId"].(string)),
+		ScheduledAt:     scheduledAt,
 		Message:         msg["Message"].(string),
 		FromPhoneNumber: msg["FromPhoneNumber"].(string),
 		ToPhoneNumber:   msg["ToPhoneNumber"].(string),
