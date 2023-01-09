@@ -17,7 +17,6 @@ func main() {
 	log.Println("SMS Consumer - Connecting to the SMS channel")
 
 	// Define RabbitMQ server URL.
-	// amqpServerURL := os.Getenv("AMQP_SERVER_URL_TEST")
 	amqpServerURL := "amqp://guest:guest@rabbitmq:5672/"
 
 	// Create a new RabbitMQ connection.
@@ -57,10 +56,8 @@ func main() {
 
 	go func() {
 		for sms := range messages {
-			deserializedMsg, err := deserializeToJson(sms.Body)
-			if err != nil {
-				panic(err)
-			}
+			deserializedMsg := deserializeToJson(sms.Body)
+
 			gMsg, lMsg := createMessage(deserializedMsg)
 
 			if gMsg.ClassId != uuid.Nil {
@@ -80,12 +77,15 @@ func main() {
 type Message map[string]interface{}
 
 // Deserializes the byte array to a json message object
-func deserializeToJson(b []byte) (Message, error) {
+func deserializeToJson(b []byte) Message {
 	var msg Message
 	buf := bytes.NewBuffer(b)
 	decoder := json.NewDecoder(buf)
 	err := decoder.Decode(&msg)
-	return msg, err
+	if err != nil {
+		panic(err)
+	}
+	return msg
 }
 
 // Creates a Location message or Group message, based on
