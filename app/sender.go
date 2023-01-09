@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"os"
 	"sms-consumer/app/helpers"
 	"time"
 
@@ -79,10 +80,11 @@ func SendConfirmationToTeacher(msg helpers.BaseMessage) {
 }
 
 func Init() {
-	accountSid = "AC7c1bac13c8d94ff8b152a06f74e47d47"
-	authToken = "e3c1d0d2aa98708bf66689a17251c88c"
-	twilioPhoneNumber = "+12183199239"
-	messageServiceId = "MGc04be72a20e29d49ecd83f987720b9c4"
+	SetEnv()
+	accountSid = os.Getenv("ACCOUNT_SID")
+	authToken = os.Getenv("AUTH_TOKEN")
+	twilioPhoneNumber = os.Getenv("TWILIO_NUMBER")
+	messageServiceId = os.Getenv("MESSAGE_SERVICE_ID")
 
 	client = twilio.NewRestClientWithParams(twilio.ClientParams{
 		Username: accountSid,

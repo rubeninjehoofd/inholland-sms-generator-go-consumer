@@ -3,8 +3,8 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
+	"os"
 	sender "sms-consumer/app"
 	"sms-consumer/app/helpers"
 	"time"
@@ -13,11 +13,10 @@ import (
 )
 
 func main() {
-	fmt.Println("SMS Consumer - Connecting to the SMS channel")
 	log.Println("SMS Consumer - Connecting to the SMS channel")
 
 	// Define RabbitMQ server URL.
-	amqpServerURL := "amqp://guest:guest@rabbitmq:5672/"
+	amqpServerURL := os.Getenv("AMQP_SERVER_URL")
 
 	// Create a new RabbitMQ connection.
 	conn, err := amqp.Dial(amqpServerURL)
