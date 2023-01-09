@@ -12,11 +12,17 @@ RUN go mod download
 ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 RUN go build -ldflags="-s -w" -o consumer .
 
+# Add certificates to be able to send messages
+RUN apk add -U --no-cache ca-certificates
+
 FROM scratch
 
 # Copy binary and config files from /build 
 # to root folder of scratch container.
 COPY --from=builder ["/build/consumer", "/"]
+
+# Copy the certificates to the scratch container
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 # Command to run when starting the container.
 ENTRYPOINT ["/consumer"]

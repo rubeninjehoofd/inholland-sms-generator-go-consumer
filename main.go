@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	sender "sms-consumer/app"
 	"sms-consumer/app/helpers"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/streadway/amqp"
 )
 
@@ -53,21 +53,15 @@ func main() {
 	log.Println("Waiting for messages")
 
 	forever := make(chan bool)
+	sender.Init()
 
 	go func() {
 		for sms := range messages {
-			deserializedMsg := deserializeToJson(sms.Body)
+			// Prepare the message
+			msg := prepareMessage(sms.Body)
 
-			gMsg, lMsg := createMessage(deserializedMsg)
-
-			if gMsg.ClassId != uuid.Nil {
-				// sender.SendGroupMessage(gMsg)
-				log.Println("Received class message:", gMsg.Message)
-
-			} else {
-				// sender.SendLocationMessage(lMsg)
-				log.Println("Received location message:", lMsg.Message)
-			}
+			// Send the message
+			sender.SendBaseMessage(msg)
 		}
 	}()
 
@@ -77,7 +71,12 @@ func main() {
 type Message map[string]interface{}
 
 // Deserializes the byte array to a json message object
-func deserializeToJson(b []byte) Message {
+func prepareMessage(bytes []byte) helpers.BaseMessage {
+	return createMessage(deserialize(bytes))
+}
+
+// Deserializes the byte array to a json message object
+func deserialize(b []byte) Message {
 	var msg Message
 	buf := bytes.NewBuffer(b)
 	decoder := json.NewDecoder(buf)
@@ -88,43 +87,22 @@ func deserializeToJson(b []byte) Message {
 	return msg
 }
 
-// Creates a Location message or Group message, based on
-// the contents of the msg variable
-func createMessage(msg Message) (helpers.GroupMessage, helpers.LocationMessage) {
-	var gMsg helpers.GroupMessage
-	var lMsg helpers.LocationMessage
-
-	// Declare the base message
-	baseMsg := helpers.BaseMessage{
-		MessageId:       uuid.MustParse(msg["MessageId"].(string)),
+// Creates a message
+func createMessage(msg Message) helpers.BaseMessage {
+	return helpers.BaseMessage{
 		ScheduledAt:     parseTime(msg),
 		Message:         msg["Message"].(string),
 		FromPhoneNumber: msg["FromPhoneNumber"].(string),
 		ToPhoneNumber:   msg["ToPhoneNumber"].(string),
 	}
-
-	// Check what the message type is
-	if _, ok := msg["ClassId"]; ok {
-		// Create Group message
-		gMsg = helpers.GroupMessage{
-			BaseMessage: baseMsg,
-			ClassId:     uuid.MustParse(msg["ClassId"].(string)),
-		}
-	} else {
-		// Create location message
-		lMsg = helpers.LocationMessage{
-			BaseMessage: baseMsg,
-			LocationId:  uuid.MustParse(msg["LocationId"].(string)),
-		}
-	}
-	return gMsg, lMsg
 }
 
 // Parses the string time to time.Time
 func parseTime(msg Message) time.Time {
 	scheduledAt, err := time.Parse(time.RFC3339, msg["ScheduledAt"].(string))
 	if err != nil {
-		panic(err)
+		log.Println("Not scheduled for a specific time. Message will be send now")
+		return time.Now()
 	}
 	return scheduledAt
 }
