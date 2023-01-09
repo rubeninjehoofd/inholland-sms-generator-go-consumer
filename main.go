@@ -3,21 +3,20 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
-	"reflect"
+	"os"
+	sender "sms-consumer/app"
 	"sms-consumer/app/helpers"
+	"time"
 
 	"github.com/streadway/amqp"
 )
 
 func main() {
-	fmt.Println("SMS Consumer - Connecting to the SMS channel")
 	log.Println("SMS Consumer - Connecting to the SMS channel")
 
 	// Define RabbitMQ server URL.
-	// amqpServerURL := os.Getenv("AMQP_SERVER_URL_TEST")
-	amqpServerURL := "amqp://guest:guest@rabbitmq:5672/"
+	amqpServerURL := os.Getenv("AMQP_SERVER_URL")
 
 	// Create a new RabbitMQ connection.
 	conn, err := amqp.Dial(amqpServerURL)
@@ -53,23 +52,15 @@ func main() {
 	log.Println("Waiting for messages")
 
 	forever := make(chan bool)
+	sender.Init()
 
 	go func() {
 		for sms := range messages {
-			deserializedMsg, err := deserializeToJson(sms.Body)
-			if err != nil {
-				panic(err)
-			}
-			gMsg, lMsg := determineMessageType(deserializedMsg)
+			// Prepare the message
+			msg := prepareMessage(sms.Body)
 
-			if gMsg.ClassId != "" {
-				// sender.SendGroupMessage(gMsg)
-				log.Println("Received class message:", gMsg.Message)
-
-			} else {
-				// sender.SendLocationMessage(lMsg)
-				log.Println("Received location message:", lMsg.Message)
-			}
+			// Send the message
+			sender.SendBaseMessage(msg)
 		}
 	}()
 
@@ -78,52 +69,39 @@ func main() {
 
 type Message map[string]interface{}
 
-// deserialize the byte array to json message object
-func deserializeToJson(b []byte) (Message, error) {
+// Deserializes the byte array to a json message object
+func prepareMessage(bytes []byte) helpers.BaseMessage {
+	return createMessage(deserialize(bytes))
+}
+
+// Deserializes the byte array to a json message object
+func deserialize(b []byte) Message {
 	var msg Message
 	buf := bytes.NewBuffer(b)
 	decoder := json.NewDecoder(buf)
 	err := decoder.Decode(&msg)
-	return msg, err
-}
-
-// Determines the message type
-func determineMessageType(msg Message) (helpers.GroupMessageJSON, helpers.LocationMessageJSON) {
-	var gMsg helpers.GroupMessageJSON
-	var lMsg helpers.LocationMessageJSON
-	if val, ok := msg["ClassId"]; ok {
-		fmt.Println(reflect.TypeOf(val))
-		gMsg = deserializeToGroupMessage(msg)
-	} else {
-		lMsg = deserializeToLocationMessage(msg)
+	if err != nil {
+		panic(err)
 	}
-	return gMsg, lMsg
+	return msg
 }
 
-// Makes a group message object with only string field from the json message
-// (uuid, time, etc. types are not in the json object)
-func deserializeToGroupMessage(msg Message) helpers.GroupMessageJSON {
-	gMsg := helpers.GroupMessageJSON{
-		MessageId:       msg["MessageId"].(string),
-		ClassId:         msg["ClassId"].(string),
-		ScheduledAt:     msg["ScheduledAt"].(string),
+// Creates a message
+func createMessage(msg Message) helpers.BaseMessage {
+	return helpers.BaseMessage{
+		ScheduledAt:     parseTime(msg),
 		Message:         msg["Message"].(string),
 		FromPhoneNumber: msg["FromPhoneNumber"].(string),
 		ToPhoneNumber:   msg["ToPhoneNumber"].(string),
 	}
-	return gMsg
 }
 
-// Makes a location message object with only string field from the json message
-// (uuid, time, etc. types are not in the json object)
-func deserializeToLocationMessage(msg Message) helpers.LocationMessageJSON {
-	lMsg := helpers.LocationMessageJSON{
-		MessageId:       msg["MessageId"].(string),
-		LocationId:      msg["LocationId"].(string),
-		ScheduledAt:     msg["ScheduledAt"].(string),
-		Message:         msg["Message"].(string),
-		FromPhoneNumber: msg["FromPhoneNumber"].(string),
-		ToPhoneNumber:   msg["ToPhoneNumber"].(string),
+// Parses the string time to time.Time
+func parseTime(msg Message) time.Time {
+	scheduledAt, err := time.Parse(time.RFC3339, msg["ScheduledAt"].(string))
+	if err != nil {
+		log.Println("Not scheduled for a specific time. Message will be send now")
+		return time.Now()
 	}
-	return lMsg
+	return scheduledAt
 }
