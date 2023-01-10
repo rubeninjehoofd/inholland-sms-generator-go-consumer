@@ -187,6 +187,17 @@ jobs:
         image: ${{ steps.push-image.outputs.registry-path }}
         namespace: ${{ env.OPENSHIFT_NAMESPACE }}
         port: ${{ env.APP_PORT }}
+        env:
+        - name: AMQP_SERVER_URL
+          value: ${{ secrets.AMQP_SERVER_URL }}
+        - name: ACCOUNT_SID
+          value: ${{ secrets.ACCOUNT_SID }}
+        - name: AUTH_TOKEN
+          value: ${{ secrets.AUTH_TOKEN }}
+        - name: TWILIO_NUMBER
+          value: ${{ secrets.TWILIO_NUMBER }}
+        - name: MESSAGE_SERVICE_ID
+          value: ${{ secrets.MESSAGE_SERVICE_ID }}
 
     - name: Print application URL
       env:
