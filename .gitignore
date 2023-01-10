@@ -20,3 +20,5 @@
 *.sh
 
 /app/environment.go
+
+docker-compose.yml
