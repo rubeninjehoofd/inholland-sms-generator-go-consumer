@@ -80,7 +80,6 @@ func SendConfirmationToTeacher(msg helpers.BaseMessage) {
 }
 
 func Init() {
-	// SetEnv()
 	accountSid = os.Getenv("ACCOUNT_SID")
 	authToken = os.Getenv("AUTH_TOKEN")
 	twilioPhoneNumber = os.Getenv("TWILIO_NUMBER")
