@@ -193,8 +193,8 @@ jobs:
         ROUTE: ${{ steps.deploy-and-expose.outputs.route }}
         SELECTOR: ${{ steps.deploy-and-expose.outputs.selector }}
       run: |
-        oc set env ${{ env.APP_NAME }} --overwrite AMQP_SERVER_URL=${{ secrets.AMQP_SERVER_URL }}
-        oc set env ${{ env.APP_NAME }} ACCOUNT_SID=${{ secrets.ACCOUNT_SID }}
+        oc set env Deployments/${{ env.APP_NAME }} --overwrite AMQP_SERVER_URL=${{ secrets.AMQP_SERVER_URL }}
+        oc set env Deployments/${{ env.APP_NAME }} ACCOUNT_SID=${{ secrets.ACCOUNT_SID }}
         [[ -n ${{ env.ROUTE }} ]] || (echo "Determining application route failed in previous step"; exit 1)
         echo
         echo "======================== Your application is available at: ========================"
