@@ -192,16 +192,11 @@ jobs:
       env:
         ROUTE: ${{ steps.deploy-and-expose.outputs.route }}
         SELECTOR: ${{ steps.deploy-and-expose.outputs.selector }}
-        - name: AMQP_SERVER_URL
-          value: ${{ secrets.AMQP_SERVER_URL }}
-        - name: ACCOUNT_SID
-          value: ${{ secrets.ACCOUNT_SID }}
-        - name: AUTH_TOKEN
-          value: ${{ secrets.AUTH_TOKEN }}
-        - name: TWILIO_NUMBER
-          value: ${{ secrets.TWILIO_NUMBER }}
-        - name: MESSAGE_SERVICE_ID
-          value: ${{ secrets.MESSAGE_SERVICE_ID }}
+        AMQP_SERVER_URL: ${{ secrets.AMQP_SERVER_URL }}
+        ACCOUNT_SID: ${{ secrets.ACCOUNT_SID }}
+        AUTH_TOKEN: ${{ secrets.AUTH_TOKEN }}
+        TWILIO_NUMBER: ${{ secrets.TWILIO_NUMBER }}
+        MESSAGE_SERVICE_ID: ${{ secrets.MESSAGE_SERVICE_ID }}
       run: |
         [[ -n ${{ env.ROUTE }} ]] || (echo "Determining application route failed in previous step"; exit 1)
         echo
