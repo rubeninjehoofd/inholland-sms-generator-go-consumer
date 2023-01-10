@@ -182,17 +182,6 @@ jobs:
     - name: Create and expose app
       id: deploy-and-expose
       uses: redhat-actions/oc-new-app@v1
-      env:
-      - name: AMQP_SERVER_URL
-        value: ${{ secrets.AMQP_SERVER_URL }}
-      - name: ACCOUNT_SID
-        value: ${{ secrets.ACCOUNT_SID }}
-      - name: AUTH_TOKEN
-        value: ${{ secrets.AUTH_TOKEN }}
-      - name: TWILIO_NUMBER
-        value: ${{ secrets.TWILIO_NUMBER }}
-      - name: MESSAGE_SERVICE_ID
-        value: ${{ secrets.MESSAGE_SERVICE_ID }}
       with:
         app_name: ${{ env.APP_NAME }}
         image: ${{ steps.push-image.outputs.registry-path }}
@@ -203,6 +192,16 @@ jobs:
       env:
         ROUTE: ${{ steps.deploy-and-expose.outputs.route }}
         SELECTOR: ${{ steps.deploy-and-expose.outputs.selector }}
+        - name: AMQP_SERVER_URL
+          value: ${{ secrets.AMQP_SERVER_URL }}
+        - name: ACCOUNT_SID
+          value: ${{ secrets.ACCOUNT_SID }}
+        - name: AUTH_TOKEN
+          value: ${{ secrets.AUTH_TOKEN }}
+        - name: TWILIO_NUMBER
+          value: ${{ secrets.TWILIO_NUMBER }}
+        - name: MESSAGE_SERVICE_ID
+          value: ${{ secrets.MESSAGE_SERVICE_ID }}
       run: |
         [[ -n ${{ env.ROUTE }} ]] || (echo "Determining application route failed in previous step"; exit 1)
         echo
