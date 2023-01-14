@@ -18,7 +18,7 @@ var (
 	messageServiceId  string
 )
 
-func SendBaseMessage(msg helpers.BaseMessage) {
+func SendMessage(msg helpers.BaseMessage) {
 	params := openapi.CreateMessageParams{}
 	params.SetMessagingServiceSid(messageServiceId)
 
@@ -33,38 +33,6 @@ func SendBaseMessage(msg helpers.BaseMessage) {
 	params.SetTo(msg.ToPhoneNumber)
 	params.SetFrom(twilioPhoneNumber)
 	params.SetBody(msg.Message)
-
-	// send sms
-	resp, err := client.Api.CreateMessage(&params)
-	if err != nil {
-		fmt.Println(err.Error())
-	} else {
-		if resp.Sid != nil {
-			fmt.Println(*resp.Sid)
-
-			// TODO: this wil send confirmation for every sms (teacher gets spammed)
-			SendConfirmationToTeacher(msg)
-		} else {
-			fmt.Println(resp.Sid)
-		}
-	}
-}
-
-func SendConfirmationToTeacher(msg helpers.BaseMessage) {
-	params := openapi.CreateMessageParams{}
-	params.SetMessagingServiceSid(messageServiceId)
-
-	// check if scheduled
-	if msg.ScheduledAt.Unix() > (time.Now().Local().Unix() + 900) {
-		fmt.Println("schedule sms")
-		params.SetSendAt(msg.ScheduledAt)
-		params.SetScheduleType("fixed")
-	}
-
-	// sms params
-	params.SetTo(msg.FromPhoneNumber)
-	params.SetFrom(twilioPhoneNumber)
-	params.SetBody("SMS confimation - Message has been sent")
 
 	// send sms
 	resp, err := client.Api.CreateMessage(&params)

@@ -60,7 +60,7 @@ func main() {
 			msg := prepareMessage(sms.Body)
 
 			// Send the message
-			sender.SendBaseMessage(msg)
+			sender.SendMessage(msg)
 		}
 	}()
 
