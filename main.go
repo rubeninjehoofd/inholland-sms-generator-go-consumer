@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"log"
+	"os"
 	sender "sms-consumer/app"
 	"sms-consumer/app/helpers"
 	"time"
@@ -15,8 +16,7 @@ func main() {
 	log.Println("SMS Consumer - Connecting to the SMS channel")
 
 	// Define RabbitMQ server URL.
-	// amqpServerURL := os.Getenv("AMQP_SERVER_URL")
-	amqpServerURL := "amqp://default_user_ZhV0-tWdJevb70CmGOV:l99gdIRNxRpcBjTh9Im9R46LHnROtSDg@10.99.21.76:5672/"
+	amqpServerURL := os.Getenv("AMQP_SERVER_URL")
 
 	// Create a new RabbitMQ connection.
 	conn, err := amqp.Dial(amqpServerURL)
